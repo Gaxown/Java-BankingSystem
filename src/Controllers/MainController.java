@@ -2,22 +2,21 @@ package Controllers;
 
 import Models.Manager;
 import Services.BankingService;
+import Views.WelcomeView;
 import enums.Role;
-import utils.Console;
 import utils.ConsoleUtils;
 
 public class MainController {
-    BankingService bankingService = BankingService.getInstance();
+    private BankingService bankingService = BankingService.getInstance();
+    private WelcomeView welcomeView = new WelcomeView();
+    private ClientController clientController = new ClientController();
+    private ManagerController managerController = new ManagerController();
+
     public void start() {
-        System.out.println("Welcome to The banking System!");
-
-
-        boolean running = true;
-
+        welcomeView.displayWelcomeMessage();
 
         while (true) {
-            // showMainMenu();
-            if (bankingService.user() != null){
+            if (bankingService.user() != null) {
                 handleUserMenu();
             } else {
                 handleWelcomeMenu();
@@ -25,93 +24,60 @@ public class MainController {
         }
     }
 
-    private void handleWelcomeMenu(){
-        int choice = 0;
+    private void handleWelcomeMenu() {
+        int choice = welcomeView.displayWelcomeMenu();
+
         switch (choice) {
             case 1:
-                // handleLogin();
+                handleLogin();
                 break;
             case 2:
                 handleRegister();
                 break;
             case 3:
-                System.out.println("Exiting the system. Goodbye!");
+                welcomeView.showMessage("Exiting the system. Goodbye!");
+                System.exit(0);
                 break;
             default:
-                System.out.println("Invalid choice. Please try again.");
+                welcomeView.showError("Invalid choice. Please try again.");
         }
     }
 
-    private  void  handleUserMenu(){
-        if (bankingService.user().getRole() == Role.CLIENT){*
-            handleClientMenu();
+    private void handleUserMenu() {
+        if (bankingService.user().getRole() == Role.CLIENT) {
+            clientController.handleClientMenu();
         } else {
-           handleManagerMenu();
+            managerController.handleManagerMenu();
         }
     }
 
-    private void handleClientMenu() {
-        while (true) {
-            ClientController.displayMenu();
-            int choice = ConsoleUtils.readInt("Choose an option");
+    private void handleLogin() {
+        try {
+            String email = ConsoleUtils.readEmail("Email");
+            String password = ConsoleUtils.readString("Password");
 
-            switch (choice) {
-                case 1:
-                    // View Profile
-                    ClientController.viewProfile(bankingService.user());
-                    break;
-                case 2:
-                    // Update Profile
-                    String fname = ConsoleUtils.readString("First Name");
-                    String lname = ConsoleUtils.readString("Last Name");
-                    String email = ConsoleUtils.readEmail("Email");
-                    String password = ConsoleUtils.readString("Password");
-                    ClientController.updateProfile(bankingService.user(), fname, lname, email, password);
-                    break;
-                case 3:
-                    // Change Password
-                    break;
-                case 4:
-                    // View Transactions
-                    break;
-                case 5:
-                    // Logout
-                    bankingService.logout();
-                    System.out.println("Logged out successfully.");
-                    return;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
+            bankingService.login(email, password);
+            welcomeView.showMessage("Login successful!");
+
+        } catch (Exception ex) {
+            welcomeView.showError("Login failed: " + ex.getMessage());
         }
-
-    }
-
-    private  void handleManagerMenu() {
-
     }
 
     private void handleRegister() {
-        // Implement login logic
-        System.out.println("Registering a new user...");
+        welcomeView.showMessage("Registering a new manager...");
 
-        while (true) {
-            try {
-                String firstName = ConsoleUtils.readString("First Name");
-                String lastName = ConsoleUtils.readString("Last Name");
-                String email = ConsoleUtils.readEmail("Email");
-                String password = ConsoleUtils.readString("Password");
+        try {
+            String firstName = ConsoleUtils.readString("First Name");
+            String lastName = ConsoleUtils.readString("Last Name");
+            String email = ConsoleUtils.readEmail("Email");
+            String password = ConsoleUtils.readString("Password");
 
-                Manager manager = bankingService.createManager(firstName, lastName, email, password, "IT");
+            bankingService.createManager(firstName, lastName, email, password, "IT");
+            welcomeView.showMessage("Registration successful! You can now log in.");
 
-                System.out.println("Registration successful! You can now log in.");
-                return;
-
-            } catch (Exception ex) {
-                System.out.println("Error during registration: " + ex.getMessage());
-                return;
-            }
+        } catch (Exception ex) {
+            welcomeView.showError("Error during registration: " + ex.getMessage());
         }
     }
-
-
 }

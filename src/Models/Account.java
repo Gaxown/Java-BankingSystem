@@ -57,7 +57,16 @@ public class Account {
     public double getBalance() {
         return balance;
     }
+    
+    public UUID getClientId() {
+        return clientId;
+    }
 
-
-
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+    
+    public void setClientId(UUID clientId) {
+        this.clientId = clientId;
+    }
 }

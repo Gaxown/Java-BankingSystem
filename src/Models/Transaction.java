@@ -18,73 +18,68 @@ public class Transaction {
 
     public static final List<Transaction> transactions = new ArrayList<>();
 
-
-    public Transaction(UUID transactionId, UUID accountId, double amount, TransactionType transactionType, String timestamp, String description) {
+            public Transaction(UUID transactionId, UUID accountId, double amount, TransactionType transactionType, String timestamp, String description) {
         this.transactionId = transactionId;
         this.accountId = accountId;
         this.amount = amount;
         this.transactionType = transactionType;
         this.timestamp = timestamp;
         this.description = description;
-    }
-
+            }
 
     public static void save(Transaction transaction) {
         transactions.add(transaction);
     }
 
-
-    public static List<Transaction> getAll() {
-        return transactions;
-    }
-
-
     public static List<Transaction> getByAccountId(UUID accountId) {
         return transactions.stream()
-                .filter(transaction -> transaction.getAccountId().equals(accountId)).collect(Collectors.toList());
+                .filter(transaction -> transaction.getAccountId().equals(accountId))
+                .collect(Collectors.toList());
     }
 
     public static List<Transaction> getByClientId(UUID clientId) {
-        return transactions.stream().filter(transaction -> transaction.getAccountId().equals(clientId)).collect(Collectors.toList());
+        return transactions.stream()
+                .filter(transaction -> {
+                    Optional<Account> accountOpt = Account.getById(transaction.getAccountId());
+                    return accountOpt.isPresent() && accountOpt.get().getClientId() != null &&
+                           accountOpt.get().getClientId().equals(clientId);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public static List<Transaction> getAll() {
+        return new ArrayList<>(transactions);
     }
 
     public UUID getTransactionId() {
         return transactionId;
     }
 
-    public void setTransactionId(UUID transactionId) {
-        this.transactionId = transactionId;
-    }
-
     public UUID getAccountId() {
         return accountId;
-    }
-
-    public void setAccountId(UUID accountId) {
-        this.accountId = accountId;
     }
 
     public double getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
     public TransactionType getTransactionType() {
         return transactionType;
-    }
-
-    public void setTransactionType(TransactionType transactionType) {
-        this.transactionType = transactionType;
     }
 
     public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public String getDescription() {
+        return description;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
