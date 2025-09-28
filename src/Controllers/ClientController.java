@@ -32,6 +32,9 @@ public class ClientController implements UserController {
                     calculateTotals();
                     break;
                 case 4:
+                    viewSuspiciousTransactions();
+                    break;
+                case 5:
                     logout();
                     return;
                 default:
@@ -94,6 +97,26 @@ public class ClientController implements UserController {
             }
         } catch (Exception e) {
             clientView.showError("Error calculating totals: " + e.getMessage());
+        }
+    }
+
+    private void viewSuspiciousTransactions() {
+        try {
+            User currentUser = bankingService.user();
+            if (currentUser != null && currentUser instanceof Client) {
+                Client client = (Client) currentUser;
+                List<Transaction> suspiciousTransactions = bankingService.detectSuspiciousTransactions(client.getId());
+
+                if (suspiciousTransactions.isEmpty()) {
+                    clientView.showMessage("No suspicious transactions found.");
+                } else {
+                    clientView.displaySuspiciousTransactions(suspiciousTransactions);
+                }
+            } else {
+                clientView.showError("No client logged in.");
+            }
+        } catch (Exception e) {
+            clientView.showError("Error retrieving suspicious transactions: " + e.getMessage());
         }
     }
 

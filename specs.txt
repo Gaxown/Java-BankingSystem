@@ -27,7 +27,7 @@ o Dépôts et retraits : ajoutables pour tous les comptes.
 
 o Virements : uniquement si le compte dispose d’un solde suffisant.
 
-• Consulter et filtrer les transactions d’un compte ou de tous les comptes d’un client.
+ Consulter et filtrer les transactions d’un compte ou de tous les comptes d’un client.
 
 • Calcul automatique du solde et des totaux par client et par type de transaction.
 

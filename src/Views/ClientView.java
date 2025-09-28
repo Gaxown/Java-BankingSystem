@@ -13,6 +13,7 @@ public class ClientView {
             "View Personal Information and Accounts",
             "Display Transaction History",
             "Calculate Balances and Totals",
+            "View Suspicious Transactions",
             "Logout"
         };
 
@@ -66,6 +67,27 @@ public class ClientView {
         System.out.println("Total deposits: $" + String.format("%.2f", totalDeposits));
         System.out.println("Total withdrawals: $" + String.format("%.2f", totalWithdrawals));
         System.out.println("Net balance: $" + String.format("%.2f", totalDeposits - totalWithdrawals));
+    }
+
+    public void displaySuspiciousTransactions(List<Transaction> suspiciousTransactions) {
+        System.out.println("\n==== Suspicious Transactions ====");
+        System.out.println("The following transactions have been flagged as suspicious:");
+
+        for (Transaction transaction : suspiciousTransactions) {
+            System.out.println("Transaction ID: " + transaction.getTransactionId());
+            System.out.println("Account: " + transaction.getAccountId());
+            System.out.println("Type: " + transaction.getTransactionType());
+            System.out.println("Amount: $" + String.format("%.2f", transaction.getAmount()));
+            System.out.println("Date: " + transaction.getTimestamp());
+
+            // Show reason for being suspicious
+            if (transaction.getAmount() > 10000) {
+                System.out.println("Reason: High amount transaction (over $10,000)");
+            } else {
+                System.out.println("Reason: Repetitive transaction pattern detected");
+            }
+            System.out.println("--------------------");
+        }
     }
 
     public void showMessage(String message) {

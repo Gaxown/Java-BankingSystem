@@ -135,6 +135,8 @@ public class BankingService {
             throw new IllegalArgumentException("User is not a client");
 
         Account account = new Account(accountType);
+        // FIX: Set the clientId in the account
+        account.setClientId(userId);
 
         // Link account to client
         Client client = (Client) user;
@@ -273,13 +275,36 @@ public class BankingService {
         return accountOpt.orElse(null);
     }
 
+    // Helper method to get all transactions for a client
     public List<Transaction> getAllTransactionsForClient(UUID clientId) {
-        Client client = (Client) User.getById(clientId).orElseThrow(() ->
-            new NoSuchElementException("Client not found"));
+        List<Account> accounts = getAccountsByClientId(clientId);
+        List<Transaction> transactions = new ArrayList<>();
+        for (Account account : accounts) {
+            transactions.addAll(Transaction.getByAccountId(account.getAccountId()));
+        }
+        return transactions;
+    }
 
-        return client.getAccounts().stream()
-                .flatMap(account -> Transaction.getByAccountId(account.getAccountId()).stream())
-                .collect(java.util.stream.Collectors.toList());
+    // Suspicious transaction detection
+    public List<Transaction> detectSuspiciousTransactions(UUID clientId) {
+        List<Transaction> allTransactions = getAllTransactionsForClient(clientId);
+        return allTransactions.stream()
+                .filter(this::isSuspiciousTransaction)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isSuspiciousTransaction(Transaction transaction) {
+        // High amount transactions (over 10,000)
+        if (transaction.getAmount() > 10000) {
+            return true;
+        }
+        // Check for repetitive operations (same amount within 1 hour)
+        List<Transaction> sameAccountTransactions = Transaction.getByAccountId(transaction.getAccountId());
+        long repetitiveCount = sameAccountTransactions.stream()
+                .filter(t -> Math.abs(t.getAmount() - transaction.getAmount()) < 0.01)
+                .filter(t -> !t.getTransactionId().equals(transaction.getTransactionId()))
+                .count();
+        return repetitiveCount >= 3; // 3 or more similar transactions
     }
 
     public double calculateTotalBalance(UUID clientId) {

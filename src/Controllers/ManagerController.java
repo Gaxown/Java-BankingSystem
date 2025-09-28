@@ -35,6 +35,9 @@ public class ManagerController {
                     consultTransactions();
                     break;
                 case 4:
+                    viewSuspiciousTransactions();
+                    break;
+                case 5:
                     logout();
                     return;
                 default:
@@ -227,6 +230,62 @@ public class ManagerController {
         } catch (Exception e) {
             managerView.showError("Error adding transaction: " + e.getMessage());
         }
+    }
+
+    private void viewSuspiciousTransactions() {
+        try {
+            int choice = managerView.displaySuspiciousTransactionsMenu();
+
+            switch (choice) {
+                case 1:
+                    // View suspicious transactions for specific client
+                    String clientEmail = ConsoleUtils.readEmail("Enter client email");
+                    User client = bankingService.getUserByEmail(clientEmail);
+
+                    if (client == null || !client.getRole().equals(enums.Role.CLIENT)) {
+                        managerView.showError("Client not found.");
+                        return;
+                    }
+
+                    List<Transaction> clientSuspiciousTransactions = bankingService.detectSuspiciousTransactions(client.getId());
+                    if (clientSuspiciousTransactions.isEmpty()) {
+                        managerView.showMessage("No suspicious transactions found for this client.");
+                    } else {
+                        managerView.displaySuspiciousTransactions(clientSuspiciousTransactions, client.getFirstName() + " " + client.getLastName());
+                    }
+                    break;
+                case 2:
+                    // View all suspicious transactions across all clients
+                    List<Transaction> allSuspiciousTransactions = bankingService.getAllTransactions().stream()
+                            .filter(this::isSuspiciousTransaction)
+                            .collect(java.util.stream.Collectors.toList());
+
+                    if (allSuspiciousTransactions.isEmpty()) {
+                        managerView.showMessage("No suspicious transactions found across all clients.");
+                    } else {
+                        managerView.displaySuspiciousTransactions(allSuspiciousTransactions, "All Clients");
+                    }
+                    break;
+                default:
+                    managerView.showError("Invalid choice.");
+            }
+        } catch (Exception e) {
+            managerView.showError("Error viewing suspicious transactions: " + e.getMessage());
+        }
+    }
+
+    private boolean isSuspiciousTransaction(Transaction transaction) {
+        // High amount transactions (over 10,000)
+        if (transaction.getAmount() > 10000) {
+            return true;
+        }
+        // Check for repetitive operations (same amount within transactions)
+        List<Transaction> sameAccountTransactions = Transaction.getByAccountId(transaction.getAccountId());
+        long repetitiveCount = sameAccountTransactions.stream()
+                .filter(t -> Math.abs(t.getAmount() - transaction.getAmount()) < 0.01)
+                .filter(t -> !t.getTransactionId().equals(transaction.getTransactionId()))
+                .count();
+        return repetitiveCount >= 3; // 3 or more similar transactions
     }
 
     private void logout() {

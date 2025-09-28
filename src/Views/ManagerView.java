@@ -14,6 +14,7 @@ public class ManagerView {
             "Manage Clients and Accounts",
             "Manage Transactions",
             "Consult Transactions",
+            "View Suspicious Transactions",
             "Logout"
         };
 
@@ -52,6 +53,16 @@ public class ManagerView {
         };
 
         ConsoleUtils.displayMenu("Transaction Consultation", options);
+        return ConsoleUtils.readInt("Choose an option");
+    }
+
+    public int displaySuspiciousTransactionsMenu() {
+        String[] options = {
+            "View suspicious transactions for specific client",
+            "View all suspicious transactions across all clients"
+        };
+
+        ConsoleUtils.displayMenu("Suspicious Transactions", options);
         return ConsoleUtils.readInt("Choose an option");
     }
 
@@ -113,6 +124,27 @@ public class ManagerView {
             System.out.println("Type: " + transaction.getTransactionType());
             System.out.println("Amount: $" + String.format("%.2f", transaction.getAmount()));
             System.out.println("Date: " + transaction.getTimestamp());
+            System.out.println("--------------------");
+        }
+    }
+
+    public void displaySuspiciousTransactions(List<Transaction> suspiciousTransactions, String clientInfo) {
+        System.out.println("\n==== Suspicious Transactions - " + clientInfo + " ====");
+        System.out.println("The following transactions have been flagged as suspicious:");
+
+        for (Transaction transaction : suspiciousTransactions) {
+            System.out.println("Transaction ID: " + transaction.getTransactionId());
+            System.out.println("Account: " + transaction.getAccountId());
+            System.out.println("Type: " + transaction.getTransactionType());
+            System.out.println("Amount: $" + String.format("%.2f", transaction.getAmount()));
+            System.out.println("Date: " + transaction.getTimestamp());
+
+            // Show reason for being suspicious
+            if (transaction.getAmount() > 10000) {
+                System.out.println("Reason: High amount transaction (over $10,000)");
+            } else {
+                System.out.println("Reason: Repetitive transaction pattern detected");
+            }
             System.out.println("--------------------");
         }
     }
